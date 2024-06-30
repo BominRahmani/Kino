@@ -1,0 +1,3 @@
+- Implement scraping logic for 1 provider using (https://go-colly.org/)
+- Implement BubbleT golang CLI tooling
+- Implement MPV player
