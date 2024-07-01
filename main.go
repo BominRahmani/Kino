@@ -1,8 +1,7 @@
 package main
 
 import (
-	"log"
-
+	"github.com/bominrahmani/kino/providers"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -33,7 +32,7 @@ func New(movies []string) *model {
 	styles := DefaultStyles()
 	answerField := textinput.New()
 	answerField.Placeholder = ""
-  answerField.Focus()
+	answerField.Focus()
 	return &model{
 		movies:      movies,
 		answerField: answerField,
@@ -46,8 +45,8 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-  var cmd tea.Cmd
-  switch msg := msg.(type) {
+	var cmd tea.Cmd
+	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -55,12 +54,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c":
 			return m, tea.Quit
-    case "enter":
-      m.answerField.SetValue("Searching")
-      return m, nil 
+		case "enter":
+			m.answerField.SetValue("Searching")
+			return m, nil
 		}
 	}
-  m.answerField, cmd = m.answerField.Update(msg)
+	m.answerField, cmd = m.answerField.Update(msg)
 	return m, cmd
 }
 
@@ -82,15 +81,16 @@ func (m model) View() string {
 }
 
 func main() {
-	movies := []string{"Bullet Train", "Life of Pi", "12 Angry Men", "Inception"}
-	m := New(movies)
-	f, err := tea.LogToFile("debug.log", "debug")
-	if err != nil {
-		log.Fatal("err: %w", err)
-	}
-	defer f.Close()
-	p := tea.NewProgram(m, tea.WithAltScreen())
-	if _, err := p.Run(); err != nil {
-		log.Fatal(err)
-	}
+	providers.Scrape()
+	// movies := []string{"Bullet Train", "Life of Pi", "12 Angry Men", "Inception"}
+	// m := New(movies)
+	// f, err := tea.LogToFile("debug.log", "debug")
+	// if err != nil {
+	// 	log.Fatal("err: %w", err)
+	// }
+	// defer f.Close()
+	//p := tea.NewProgram(m, tea.WithAltScreen())
+	// if _, err := p.Run(); err != nil {
+	// 	log.Fatal(err)
+	// }
 }
