@@ -1,8 +1,9 @@
 package providers
 
 type Movie struct {
-	title     string
-	url       string
-	imageUrl  string
-	mediaType string
+	Title     string
+	Url       string
+	ImageUrl  string
+	MediaType string
+	Year      string
 }

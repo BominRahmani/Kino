@@ -1,7 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/bominrahmani/kino/providers"
+	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -12,6 +15,14 @@ type Styles struct {
 	InputField  lipgloss.Style
 }
 
+type movieItem struct {
+	title, year string
+}
+
+func (i movieItem) Title() string       { return i.title }
+func (i movieItem) Description() string { return i.year }
+func (i movieItem) FilterValue() string { return i.title }
+
 func DefaultStyles() *Styles {
 	s := new(Styles)
 	s.BorderColor = lipgloss.Color("36")
@@ -20,28 +31,31 @@ func DefaultStyles() *Styles {
 }
 
 type model struct {
-	movies      []string //change this to more complicated and complete structure later
+	movies      []*providers.Movie
 	width       int
 	height      int
 	index       int
+	list        list.Model
 	styles      *Styles
 	answerField textinput.Model
+	loading     bool
+	state       string
 }
 
-func New(movies []string) *model {
+func New() *model {
 	styles := DefaultStyles()
 	answerField := textinput.New()
 	answerField.Placeholder = ""
 	answerField.Focus()
 	return &model{
-		movies:      movies,
 		answerField: answerField,
 		styles:      styles,
+		state:       "input",
 	}
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return textinput.Blink
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -55,11 +69,38 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case "enter":
+			query := m.answerField.Value()
 			m.answerField.SetValue("Searching")
+			catalogue, err := providers.Scrape(query)
+			if err != nil {
+				log.Printf("Error searching movies: %v", err)
+				return m, nil
+			}
+			m.movies = catalogue
+			// iterate through movies to make a list
+			items := make([]list.Item, len(catalogue))
+			for i, kino := range catalogue {
+				items[i] = movieItem{title: kino.Title, year: kino.Year}
+			}
+			m.list = list.New(items, list.NewDefaultDelegate(), m.width, m.height-10)
+			m.list.Title = "Search Results"
+			m.state = "list"
 			return m, nil
+		case "list":
+			switch msg.String() {
+			case "q", "esc":
+				m.state = "input"
+				m.answerField.SetValue("")
+				return m, nil
+			}
 		}
 	}
-	m.answerField, cmd = m.answerField.Update(msg)
+	if m.state == "input" {
+		m.answerField, cmd = m.answerField.Update(msg)
+	} else {
+		m.list, cmd = m.list.Update(msg)
+	}
+	//m.answerField, cmd = m.answerField.Update(msg)
 	return m, cmd
 }
 
@@ -67,30 +108,35 @@ func (m model) View() string {
 	if m.width == 0 {
 		return "loading..."
 	}
+	var content string
+	switch m.state {
+	case "input":
+		content = lipgloss.JoinVertical(
+			lipgloss.Center,
+			"What movie would you like to watch?",
+			m.styles.InputField.Render(m.answerField.View()),
+		)
+	case "list":
+		content = m.list.View()
+	}
 	return lipgloss.Place(
 		m.width,
 		m.height,
 		lipgloss.Center,
 		lipgloss.Center,
-		lipgloss.JoinVertical(
-			lipgloss.Center,
-			"What movie would you like to watch?",
-			m.styles.InputField.Render(m.answerField.View()),
-		),
+		content,
 	)
 }
 
 func main() {
-	providers.Scrape()
-	// movies := []string{"Bullet Train", "Life of Pi", "12 Angry Men", "Inception"}
-	// m := New(movies)
-	// f, err := tea.LogToFile("debug.log", "debug")
-	// if err != nil {
-	// 	log.Fatal("err: %w", err)
-	// }
-	// defer f.Close()
-	//p := tea.NewProgram(m, tea.WithAltScreen())
-	// if _, err := p.Run(); err != nil {
-	// 	log.Fatal(err)
-	// }
+	m := New()
+	f, err := tea.LogToFile("debug.log", "debug")
+	if err != nil {
+		log.Fatal("err: %w", err)
+	}
+	defer f.Close()
+	p := tea.NewProgram(m, tea.WithAltScreen())
+	if _, err := p.Run(); err != nil {
+		log.Fatal(err)
+	}
 }
