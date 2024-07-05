@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/bominrahmani/kino/providers"
 	"github.com/charmbracelet/bubbles/list"
@@ -15,6 +17,13 @@ type Styles struct {
 	InputField  lipgloss.Style
 }
 
+func DefaultStyles() *Styles {
+	s := new(Styles)
+	s.BorderColor = lipgloss.Color("36")
+	s.InputField = lipgloss.NewStyle().BorderForeground(s.BorderColor).BorderStyle(lipgloss.NormalBorder()).Padding(1).Width(80)
+	return s
+}
+
 type movieItem struct {
 	title, year string
 }
@@ -23,69 +32,79 @@ func (i movieItem) Title() string       { return i.title }
 func (i movieItem) Description() string { return i.year }
 func (i movieItem) FilterValue() string { return i.title }
 
-func DefaultStyles() *Styles {
-	s := new(Styles)
-	s.BorderColor = lipgloss.Color("36")
-	s.InputField = lipgloss.NewStyle().BorderForeground(s.BorderColor).BorderStyle(lipgloss.NormalBorder()).Padding(1).Width(80)
-	return s
-}
-
 type model struct {
 	movies      []*providers.Movie
 	width       int
 	height      int
-	index       int
 	list        list.Model
 	styles      *Styles
 	answerField textinput.Model
-	loading     bool
 	state       string
+	loading     bool
+	initialized bool
 }
 
 func New() *model {
 	styles := DefaultStyles()
 	answerField := textinput.New()
-	answerField.Placeholder = ""
+	answerField.Placeholder = "Enter movie title"
 	answerField.Focus()
+
+	// Initialize the list with an empty delegate
+	emptyList := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
+	//emptyList.SetShowTitle(false)
+	//emptyList.SetShowStatusBar(false)
+	//emptyList.SetFilteringEnabled(false)
+
 	return &model{
 		answerField: answerField,
 		styles:      styles,
 		state:       "input",
+		list:        emptyList,
 	}
 }
 
 func (m model) Init() tea.Cmd {
-	return textinput.Blink
+	return tea.Batch(textinput.Blink, tea.EnterAltScreen)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		if !m.initialized {
+			m.initialized = true
+			return m, tea.Batch(
+				func() tea.Msg {
+					time.Sleep(100 * time.Millisecond) // Small delay to ensure window size is set
+					return tea.WindowSizeMsg{Width: m.width, Height: m.height}
+				},
+			)
+		}
+
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c":
-			return m, tea.Quit
-		case "enter":
-			query := m.answerField.Value()
-			m.answerField.SetValue("Searching")
-			catalogue, err := providers.Scrape(query)
-			if err != nil {
-				log.Printf("Error searching movies: %v", err)
-				return m, nil
+		switch m.state {
+		case "input":
+			switch msg.String() {
+			case "ctrl+c":
+				return m, tea.Quit
+			case "enter":
+				if !m.loading {
+					m.loading = true
+					query := m.answerField.Value()
+					return m, tea.Batch(
+						func() tea.Msg {
+							return searchMsg(query)
+						},
+						tea.Tick(time.Millisecond*100, func(t time.Time) tea.Msg {
+							return tickMsg{}
+						}),
+					)
+				}
 			}
-			m.movies = catalogue
-			// iterate through movies to make a list
-			items := make([]list.Item, len(catalogue))
-			for i, kino := range catalogue {
-				items[i] = movieItem{title: kino.Title, year: kino.Year}
-			}
-			m.list = list.New(items, list.NewDefaultDelegate(), m.width, m.height-10)
-			m.list.Title = "Search Results"
-			m.state = "list"
-			return m, nil
 		case "list":
 			switch msg.String() {
 			case "q", "esc":
@@ -94,19 +113,57 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 		}
+
+	case searchMsg:
+		return m, func() tea.Msg {
+			start := time.Now()
+			catalogue, err := providers.Scrape(string(msg))
+			log.Printf("Scrape took %v", time.Since(start))
+			return searchResultMsg{movies: catalogue, err: err}
+		}
+
+	case searchResultMsg:
+		m.loading = false
+		if msg.err != nil {
+			m.state = "input"
+			m.answerField.SetValue(fmt.Sprintf("Error: %v", msg.err))
+		} else {
+			start := time.Now()
+			m.movies = msg.movies
+			items := make([]list.Item, len(m.movies))
+			for i, kino := range m.movies {
+				items[i] = movieItem{title: kino.Title, year: kino.Year}
+			}
+
+			m.list.SetItems(items)
+			m.list.SetSize(m.width, m.height-10)
+			m.list.Title = "Search Results"
+			m.state = "list"
+
+			log.Printf("List initialization took %v", time.Since(start))
+		}
+		return m, nil
+
+	case tickMsg:
+		if m.loading {
+			return m, tea.Tick(time.Millisecond*100, func(t time.Time) tea.Msg {
+				return tickMsg{}
+			})
+		}
 	}
+
 	if m.state == "input" {
 		m.answerField, cmd = m.answerField.Update(msg)
 	} else {
 		m.list, cmd = m.list.Update(msg)
 	}
-	//m.answerField, cmd = m.answerField.Update(msg)
+
 	return m, cmd
 }
 
 func (m model) View() string {
-	if m.width == 0 {
-		return "loading..."
+	if !m.initialized {
+		return "Initializing..."
 	}
 	var content string
 	switch m.state {
@@ -116,6 +173,13 @@ func (m model) View() string {
 			"What movie would you like to watch?",
 			m.styles.InputField.Render(m.answerField.View()),
 		)
+		if m.loading {
+			content = lipgloss.JoinVertical(
+				lipgloss.Center,
+				content,
+				"Searching...",
+			)
+		}
 	case "list":
 		content = m.list.View()
 	}
@@ -127,6 +191,15 @@ func (m model) View() string {
 		content,
 	)
 }
+
+type searchMsg string
+
+type searchResultMsg struct {
+	movies []*providers.Movie
+	err    error
+}
+
+type tickMsg struct{}
 
 func main() {
 	m := New()

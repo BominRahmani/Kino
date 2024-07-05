@@ -1,6 +1,46 @@
-debug 2024/07/04 16:13:01 Error searching movies: Not Found
-debug 2024/07/04 16:13:11 Error searching movies: Not Found
-debug 2024/07/04 16:13:44 Error searching movies: Not Found
-debug 2024/07/04 16:17:37 Error searching movies: Not Found
-debug 2024/07/04 16:18:16 could not open a new TTY: open /dev/tty: device not configured
-debug 2024/07/04 16:18:24 could not open a new TTY: open /dev/tty: device not configured
+debug 2024/07/04 20:59:39 Scrape took 401.044042ms
+debug 2024/07/04 20:59:39 List initialization took 255.708µs
+debug 2024/07/04 20:59:50 Scrape took 354.121417ms
+debug 2024/07/04 20:59:50 List initialization took 215.417µs
+debug 2024/07/04 20:59:53 Scrape took 349.90325ms
+debug 2024/07/04 20:59:53 List initialization took 213.375µs
+debug 2024/07/04 21:04:31 Scrape took 764.912125ms
+debug 2024/07/04 21:04:31 List initialization took 245.208µs
+debug 2024/07/04 21:04:50 Scrape took 605.88725ms
+debug 2024/07/04 21:04:50 List initialization took 251.042µs
+debug 2024/07/04 21:05:32 Scrape took 576.497ms
+debug 2024/07/04 21:05:32 List initialization took 326.416µs
+debug 2024/07/04 21:05:54 Scrape took 657.950916ms
+debug 2024/07/04 21:05:54 List initialization took 593.166µs
+debug 2024/07/04 21:06:04 Scrape took 696.874667ms
+debug 2024/07/04 21:06:04 List initialization took 308.542µs
+debug 2024/07/04 21:06:37 Scrape took 543.557041ms
+debug 2024/07/04 21:06:37 List initialization took 315.084µs
+debug 2024/07/04 21:11:17 Scrape took 631.840958ms
+debug 2024/07/04 21:11:17 List initialization took 377µs
+debug 2024/07/04 21:11:45 Scrape took 1.006638667s
+debug 2024/07/04 21:11:45 List initialization took 292.625µs
+debug 2024/07/04 21:11:49 Scrape took 989.935625ms
+debug 2024/07/04 21:11:49 List initialization took 324.416µs
+debug 2024/07/04 21:12:15 Scrape took 740.741375ms
+debug 2024/07/04 21:12:15 List initialization took 372.541µs
+debug 2024/07/04 21:12:19 Scrape took 413.593834ms
+debug 2024/07/04 21:12:19 List initialization took 314.875µs
+debug 2024/07/04 21:12:23 Scrape took 484.433958ms
+debug 2024/07/04 21:12:23 List initialization took 274.958µs
+debug 2024/07/04 21:12:57 Scrape took 1.9801395s
+debug 2024/07/04 21:12:57 List initialization took 420.666µs
+debug 2024/07/04 21:13:03 Scrape took 445.3125ms
+debug 2024/07/04 21:13:03 List initialization took 260.75µs
+debug 2024/07/04 21:13:17 Scrape took 597.508542ms
+debug 2024/07/04 21:13:17 List initialization took 321.125µs
+debug 2024/07/04 21:13:34 Scrape took 944.637875ms
+debug 2024/07/04 21:13:34 List initialization took 315.208µs
+debug 2024/07/04 21:13:49 Scrape took 1.341387583s
+debug 2024/07/04 21:13:49 List initialization took 369.208µs
+debug 2024/07/04 21:14:03 Scrape took 735.919375ms
+debug 2024/07/04 21:14:03 List initialization took 275.084µs
+debug 2024/07/04 21:14:30 Scrape took 612.367583ms
+debug 2024/07/04 21:14:30 List initialization took 352.208µs
+debug 2024/07/04 21:14:36 Scrape took 537.646333ms
+debug 2024/07/04 21:14:36 List initialization took 312.166µs
