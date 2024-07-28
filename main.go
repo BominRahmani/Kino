@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os/exec"
 	"time"
 
 	"github.com/bominrahmani/kino/providers"
@@ -25,12 +26,12 @@ func DefaultStyles() *Styles {
 }
 
 type movieItem struct {
-	title, year string
+	movie *providers.Movie
 }
 
-func (i movieItem) Title() string       { return i.title }
-func (i movieItem) Description() string { return i.year }
-func (i movieItem) FilterValue() string { return i.title }
+func (i movieItem) Title() string       { return i.movie.Title }
+func (i movieItem) Description() string { return i.movie.Year }
+func (i movieItem) FilterValue() string { return i.movie.Title }
 
 type model struct {
 	movies      []*providers.Movie
@@ -42,6 +43,8 @@ type model struct {
 	state       string
 	loading     bool
 	initialized bool
+	provider    *providers.FlixHQProvider
+	selectedURL string
 }
 
 func New() *model {
@@ -58,6 +61,7 @@ func New() *model {
 		styles:      styles,
 		state:       "input",
 		list:        emptyList,
+		provider:    providers.NewFlixHQProvider(),
 	}
 }
 
@@ -108,14 +112,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.state = "input"
 				m.answerField.SetValue("")
 				return m, nil
+			case "enter":
+				if i, ok := m.list.SelectedItem().(movieItem); ok {
+					m.selectedURL = i.movie.Url
+					kinoFile := m.provider.KinoTime(i.movie.Url)
+					cmd := exec.Command("mpv", kinoFile)
+					err := cmd.Run()
+					if err != nil {
+						fmt.Println("Error running MPV:", err)
+					}
+					return m, tea.Quit
+				}
 			}
 		}
 
 	case searchMsg:
 		return m, func() tea.Msg {
 			start := time.Now()
-			flixHQ := providers.NewFlixHQProvider()
-			catalogue, err := flixHQ.Scrape(string(msg))
+			catalogue, err := m.provider.Scrape(string(msg))
 			log.Printf("Scrape took %v", time.Since(start))
 			return searchResultMsg{movies: catalogue, err: err}
 		}
@@ -130,7 +144,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.movies = msg.movies
 			items := make([]list.Item, len(m.movies))
 			for i, kino := range m.movies {
-				items[i] = movieItem{title: kino.Title, year: kino.Year}
+				items[i] = movieItem{movie: kino}
 			}
 
 			m.list.SetItems(items)
@@ -207,7 +221,11 @@ func main() {
 	}
 	defer f.Close()
 	p := tea.NewProgram(m, tea.WithAltScreen())
-	if _, err := p.Run(); err != nil {
+	if m, err := p.Run(); err != nil {
 		log.Fatal(err)
+	} else {
+		if finalModel, ok := m.(model); ok && finalModel.selectedURL != "" {
+			fmt.Printf("Selected movie URL: %s\n", finalModel.selectedURL)
+		}
 	}
 }

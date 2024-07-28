@@ -72,7 +72,7 @@ func (f *FlixHQProvider) formatQuery(query string) string {
 // GetEmbedLink returns the embeded link for the video streams
 // in the form of /watch-movie/<watch-<name-of-movie-split-by-hyphen-delim>-<imdb-identifier>.<unique-id>
 func (f *FlixHQProvider) GetEmbedLink(url string) string {
-	parts := strings.Split(url, ".")
+	parts := strings.Split(url, "-")
 	movieId := parts[len(parts)-1]
 	f.Collector.OnRequest(func(r *colly.Request) {
 		r.Headers.Set("X-Requested-With", "XMLHttpRequest")
@@ -85,12 +85,12 @@ func (f *FlixHQProvider) GetEmbedLink(url string) string {
 	})
 
 	f.Collector.OnError(func(r *colly.Response, err error) {
-		fmt.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
+		fmt.Println("Request URL:", r.Request.URL, "Failed")
 	})
 
 	err := f.Collector.Visit(ajaxUrl)
 	if err != nil {
-		fmt.Println("Error visiting URL:", err)
+		fmt.Println("Error visiting URL:")
 	}
 	f.Collector.Wait()
 
@@ -167,7 +167,6 @@ func (f *FlixHQProvider) extractRabbitWasm(id string) string {
 		fmt.Println("Error decrypting rabbit", err)
 	}
 
-	fmt.Println(movieLink)
 	return movieLink
 }
 

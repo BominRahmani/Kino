@@ -116,3 +116,66 @@ debug 2024/07/12 20:28:55 Scrape took 545.026792ms
 debug 2024/07/12 20:28:55 List initialization took 319.667µs
 debug 2024/07/12 20:29:09 Scrape took 131.459µs
 debug 2024/07/12 20:29:21 Scrape took 49.167µs
+debug 2024/07/27 20:12:45 Scrape took 476.059958ms
+debug 2024/07/27 20:12:45 List initialization took 466.417µs
+debug 2024/07/27 20:13:14 Scrape took 333.345459ms
+debug 2024/07/27 20:13:14 List initialization took 301.959µs
+debug 2024/07/27 20:13:17 Scrape took 356.944375ms
+debug 2024/07/27 20:13:17 List initialization took 339.125µs
+debug 2024/07/27 20:13:21 Scrape took 561.174875ms
+debug 2024/07/27 20:13:21 List initialization took 288.25µs
+debug 2024/07/27 20:22:20 Scrape took 465.796458ms
+debug 2024/07/27 20:22:20 List initialization took 282.583µs
+debug 2024/07/27 20:24:25 Scrape took 451.889666ms
+debug 2024/07/27 20:24:25 List initialization took 241.042µs
+debug 2024/07/27 20:24:31 Failed to get video link
+debug 2024/07/27 20:25:05 Scrape took 814.216875ms
+debug 2024/07/27 20:25:05 List initialization took 267.25µs
+debug 2024/07/27 20:25:06 Failed to get video link
+debug 2024/07/27 20:26:41 Scrape took 494.588666ms
+debug 2024/07/27 20:26:41 List initialization took 309.541µs
+debug 2024/07/27 20:26:42 Failed to get video link
+debug 2024/07/27 20:28:39 Scrape took 580.541ms
+debug 2024/07/27 20:28:39 List initialization took 279µs
+debug 2024/07/27 20:28:41 Failed to get video link
+debug 2024/07/27 20:30:07 Scrape took 538.365292ms
+debug 2024/07/27 20:30:07 List initialization took 253.417µs
+debug 2024/07/27 20:30:09 Failed to get video link
+debug 2024/07/27 20:32:36 Scrape took 469.019209ms
+debug 2024/07/27 20:32:36 List initialization took 259.125µs
+debug 2024/07/27 20:32:37 Failed to get video link
+debug 2024/07/27 20:32:47 Scrape took 653.749166ms
+debug 2024/07/27 20:32:47 List initialization took 268.208µs
+debug 2024/07/27 20:32:49 Failed to get video link
+debug 2024/07/27 21:09:26 Scrape took 1.192659584s
+debug 2024/07/27 21:09:26 List initialization took 350.375µs
+debug 2024/07/27 21:17:13 Scrape took 2.769956583s
+debug 2024/07/27 21:17:13 List initialization took 267.75µs
+debug 2024/07/27 21:20:33 Scrape took 1.488538s
+debug 2024/07/27 21:20:33 List initialization took 274.333µs
+debug 2024/07/27 21:28:54 Scrape took 1.549402958s
+debug 2024/07/27 21:28:54 List initialization took 339.833µs
+debug 2024/07/27 21:30:39 Scrape took 1.460751791s
+debug 2024/07/27 21:30:39 List initialization took 496.917µs
+debug 2024/07/27 21:31:59 Scrape took 2.252814833s
+debug 2024/07/27 21:31:59 List initialization took 523.958µs
+debug 2024/07/27 21:33:17 Scrape took 2.93706775s
+debug 2024/07/27 21:33:17 List initialization took 245.958µs
+debug 2024/07/27 21:40:04 Scrape took 1.731494917s
+debug 2024/07/27 21:40:04 List initialization took 218µs
+debug 2024/07/27 21:46:13 Scrape took 2.857391667s
+debug 2024/07/27 21:46:13 List initialization took 341.166µs
+debug 2024/07/27 21:54:30 Scrape took 1.420521334s
+debug 2024/07/27 21:54:30 List initialization took 962.584µs
+debug 2024/07/27 21:55:52 Scrape took 1.401735541s
+debug 2024/07/27 21:55:52 List initialization took 470.25µs
+debug 2024/07/27 22:01:28 Scrape took 2.075599125s
+debug 2024/07/27 22:01:28 List initialization took 313.709µs
+debug 2024/07/27 22:03:14 Scrape took 2.44441525s
+debug 2024/07/27 22:03:14 List initialization took 273.459µs
+debug 2024/07/27 22:03:32 Scrape took 3.317774625s
+debug 2024/07/27 22:03:32 List initialization took 333.167µs
+debug 2024/07/27 22:05:16 Scrape took 1.575879417s
+debug 2024/07/27 22:05:16 List initialization took 256µs
+debug 2024/07/27 22:14:19 Scrape took 1.115716792s
+debug 2024/07/27 22:14:19 List initialization took 293.584µs
