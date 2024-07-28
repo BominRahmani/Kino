@@ -52,9 +52,6 @@ func New() *model {
 
 	// Initialize the list with an empty delegate
 	emptyList := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
-	//emptyList.SetShowTitle(false)
-	//emptyList.SetShowStatusBar(false)
-	//emptyList.SetFilteringEnabled(false)
 
 	return &model{
 		answerField: answerField,
@@ -117,7 +114,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case searchMsg:
 		return m, func() tea.Msg {
 			start := time.Now()
-			catalogue, err := providers.Scrape(string(msg))
+			flixHQ := providers.NewFlixHQProvider()
+			catalogue, err := flixHQ.Scrape(string(msg))
 			log.Printf("Scrape took %v", time.Since(start))
 			return searchResultMsg{movies: catalogue, err: err}
 		}
