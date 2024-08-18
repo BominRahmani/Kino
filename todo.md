@@ -1,13 +1,8 @@
 # TODO
-- Implement standardbox that pops up cool message at the top when you start application [x]
 
-- Implement FZF as the engine for prompting/searches []
-  - Navigation []
-
-- Implement sixel/chafa as image output []
-
-- Implement image caching for movies []
-
+- Implement faster image downloading []
+    - make it optional?
+- Implement fast mpv/vlc video []
 
 
 ## Useful tools

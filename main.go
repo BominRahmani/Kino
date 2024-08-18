@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -23,8 +24,6 @@ type searchResultMsg struct {
 }
 
 func main() {
-	//cacheDir, err := os.Create("./cache/")
-
 	introductionMessage()
 
 	// Prompt user for movie name
@@ -53,19 +52,27 @@ func main() {
 		return
 	}
 
-  fmt.Println(selectedMovie)
+	fmt.Println(selectedMovie)
 
 }
 
 func hash(s string) uint32 {
-        h := fnv.New32a()
-        h.Write([]byte(s))
-        return h.Sum32()
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return h.Sum32()
+}
+
+func upscaleImage(url string) string {
+	re := regexp.MustCompile(`/\d+x\d+/`)
+	return re.ReplaceAllString(url, "/1000x1000/")
 }
 
 func downloadImages(catalogue []*providers.Movie) {
 	for _, movie := range catalogue {
-		resp, err := http.Get(movie.ImageUrl)
+		// upscale image link
+		fmt.Println("UPSCALED: ", upscaleImage(movie.ImageUrl))
+		upscaledImageUrl := upscaleImage(movie.ImageUrl)
+		resp, err := http.Get(upscaledImageUrl)
 		if err != nil {
 			fmt.Println("Error downloading image previews: ", err)
 			return
@@ -73,12 +80,12 @@ func downloadImages(catalogue []*providers.Movie) {
 
 		defer resp.Body.Close()
 
-    imageHash := hash(movie.ImageUrl) 
-    imageFile := filepath.Join("/tmp/", fmt.Sprint(imageHash)) 
+		imageHash := hash(movie.ImageUrl)
+		imageFile := filepath.Join("/tmp/kinoImages/", fmt.Sprint(imageHash))
 		out, err := os.Create(imageFile)
 
 		if err != nil {
-      fmt.Println("Error downloading image previews: ", err)
+			fmt.Println("Error downloading image previews: ", err)
 			return
 		}
 		defer out.Close()
@@ -94,10 +101,31 @@ func downloadImages(catalogue []*providers.Movie) {
 func FZFSearch(catalogue []*providers.Movie) (*providers.Movie, error) {
 	var input strings.Builder
 	for _, movie := range catalogue {
-		input.WriteString(fmt.Sprintf("%s (%s)\n", movie.Title, movie.Year))
+		hashedFileName := fmt.Sprint(hash(movie.ImageUrl))
+		fullImagePath := filepath.Join("/tmp/kinoImages/", hashedFileName)
+		input.WriteString(fmt.Sprintf("%s (%s)\t%s\n", movie.Title, movie.Year, fullImagePath))
 	}
 
-	cmd := exec.Command("fzf", "--ansi")
+	// Calculate image dimensions and position
+	imageWidth := 50
+	imageHeight := 50 
+	xOffset := 10 
+	yOffset := 0
+
+	previewCmd := fmt.Sprintf("kitty +kitten icat --clear --place %dx%d@%dx%d --scale-up  --stdin=no --transfer-mode file {2}",
+		imageWidth, imageHeight, xOffset, yOffset)
+
+
+	fzfArgs := []string{
+    "--cycle",
+    "--reverse",
+		"--with-nth", "1",
+		"-d", "\t",
+		"--preview", previewCmd,
+    "--preview-window", "noborder",
+		"--preview-window", "right:40%",
+	}
+  cmd := exec.Command("fzf", fzfArgs...)
 	cmd.Stdin = strings.NewReader(input.String())
 	cmd.Stderr = os.Stderr
 
@@ -117,7 +145,9 @@ func FZFSearch(catalogue []*providers.Movie) (*providers.Movie, error) {
 }
 
 func introductionMessage() {
-	s, _ := pterm.DefaultBigText.WithLetters(putils.LettersFromString("KINO")).Srender()
+	fmt.Print("\033[H\033[2J")
+	s, _ := pterm.DefaultBigText.WithLetters(putils.LettersFromStringWithStyle("KINO", pterm.FgCyan.ToStyle())).Srender()
 	pterm.DefaultCenter.Println(s)
-	pterm.DefaultCenter.WithCenterEachLineSeparately().Println("Totus mundus agit histrionem")
+	pterm.DefaultCenter.WithCenterEachLineSeparately().Println("Totus Mundus\nAgit Histrionem")
+
 }
