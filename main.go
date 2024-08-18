@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
+	"sync/atomic"
 
 	"github.com/pterm/pterm"
 	"github.com/pterm/pterm/putils"
@@ -68,34 +70,52 @@ func upscaleImage(url string) string {
 }
 
 func downloadImages(catalogue []*providers.Movie) {
+  totalImages := len(catalogue)
+	var wg sync.WaitGroup
+	semaphore := make(chan struct{}, 13)
+  var completedDownloads int32
+
+  progressbar, _ := pterm.DefaultProgressbar.
+		WithTotal(totalImages).
+		WithTitle("Loading").
+		Start()
+
 	for _, movie := range catalogue {
-		// upscale image link
-		fmt.Println("UPSCALED: ", upscaleImage(movie.ImageUrl))
-		upscaledImageUrl := upscaleImage(movie.ImageUrl)
-		resp, err := http.Get(upscaledImageUrl)
-		if err != nil {
-			fmt.Println("Error downloading image previews: ", err)
-			return
-		}
+		wg.Add(1)
+		go func(m *providers.Movie) {
+			defer wg.Done()
+			semaphore <- struct{}{}
+			defer func() { <-semaphore }()
+			// upscale image link
+			upscaledImageUrl := upscaleImage(movie.ImageUrl)
 
-		defer resp.Body.Close()
+			resp, err := http.Get(upscaledImageUrl)
+			if err != nil {
+				fmt.Println("Error downloading image previews: ", err)
+				return
+			}
 
-		imageHash := hash(movie.ImageUrl)
-		imageFile := filepath.Join("/tmp/kinoImages/", fmt.Sprint(imageHash))
-		out, err := os.Create(imageFile)
+			defer resp.Body.Close()
 
-		if err != nil {
-			fmt.Println("Error downloading image previews: ", err)
-			return
-		}
-		defer out.Close()
+			imageHash := hash(movie.ImageUrl)
+			imageFile := filepath.Join("/tmp/kinoImages/", fmt.Sprint(imageHash))
+			out, err := os.Create(imageFile)
 
-		_, err = io.Copy(out, resp.Body)
-		if err != nil {
-			fmt.Println("Error downloading image previews: ", err)
-			return
-		}
+			if err != nil {
+				fmt.Println("Error downloading image previews: ", err)
+				return
+			}
+			defer out.Close()
+			_, err = io.Copy(out, resp.Body)
+			if err != nil {
+				fmt.Println("Error downloading image previews: ", err)
+				return
+			}
+      atomic.AddInt32(&completedDownloads, 1)
+			progressbar.Add(1)
+		}(movie)
 	}
+	wg.Wait()
 }
 
 func FZFSearch(catalogue []*providers.Movie) (*providers.Movie, error) {
@@ -108,24 +128,23 @@ func FZFSearch(catalogue []*providers.Movie) (*providers.Movie, error) {
 
 	// Calculate image dimensions and position
 	imageWidth := 50
-	imageHeight := 50 
-	xOffset := 10 
+	imageHeight := 50
+	xOffset := 10
 	yOffset := 0
 
 	previewCmd := fmt.Sprintf("kitty +kitten icat --clear --place %dx%d@%dx%d --scale-up  --stdin=no --transfer-mode file {2}",
 		imageWidth, imageHeight, xOffset, yOffset)
 
-
 	fzfArgs := []string{
-    "--cycle",
-    "--reverse",
+		"--cycle",
+		"--reverse",
 		"--with-nth", "1",
 		"-d", "\t",
 		"--preview", previewCmd,
-    "--preview-window", "noborder",
+		"--preview-window", "noborder",
 		"--preview-window", "right:40%",
 	}
-  cmd := exec.Command("fzf", fzfArgs...)
+	cmd := exec.Command("fzf", fzfArgs...)
 	cmd.Stdin = strings.NewReader(input.String())
 	cmd.Stderr = os.Stderr
 
