@@ -1,8 +1,8 @@
 # TODO
 
-- Implement faster image downloading []
+- Implement faster image downloading [x]
     - make it optional?
-- Implement fast mpv/vlc video []
+- Implement fast mpv/vlc video [x]
 
 
 ## Useful tools
