@@ -44,7 +44,7 @@ func main() {
 		return
 	}
 
-	// Download and cache all the images within a temporary directory
+	// cache movie posters
 	downloadImages(catalogue)
 
 	// Use FZF to select a movie
@@ -54,7 +54,18 @@ func main() {
 		return
 	}
 
-	fmt.Println(selectedMovie)
+	// KINO TIMEEEE
+	kinoUrl := flixhq.KinoTime(selectedMovie.Url)
+	cmd := exec.Command("mpv", "--fs", kinoUrl)
+
+	// ENABLE FOR VLC INSTEAD OF MPV
+	//cmd := exec.Command("vlc", kinoUrl)
+
+	err = cmd.Run()
+
+	if err != nil {
+		fmt.Println("Error running MPV: ", err)
+	}
 
 }
 
@@ -70,12 +81,12 @@ func upscaleImage(url string) string {
 }
 
 func downloadImages(catalogue []*providers.Movie) {
-  totalImages := len(catalogue)
+	totalImages := len(catalogue)
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, 13)
-  var completedDownloads int32
+	var completedDownloads int32
 
-  progressbar, _ := pterm.DefaultProgressbar.
+	progressbar, _ := pterm.DefaultProgressbar.
 		WithTotal(totalImages).
 		WithTitle("Loading").
 		Start()
@@ -111,7 +122,7 @@ func downloadImages(catalogue []*providers.Movie) {
 				fmt.Println("Error downloading image previews: ", err)
 				return
 			}
-      atomic.AddInt32(&completedDownloads, 1)
+			atomic.AddInt32(&completedDownloads, 1)
 			progressbar.Add(1)
 		}(movie)
 	}
@@ -154,8 +165,12 @@ func FZFSearch(catalogue []*providers.Movie) (*providers.Movie, error) {
 	}
 
 	selectedTitle := strings.TrimSpace(string(output))
+	movieTitlePosition := strings.LastIndex(selectedTitle, "(")
+	selectedTitle = selectedTitle[:movieTitlePosition]
+	selectedTitle = strings.TrimSpace(selectedTitle)
+
 	for _, movie := range catalogue {
-		if fmt.Sprintf("%s (%s)", movie.Title, movie.Year) == selectedTitle {
+		if movie.Title == selectedTitle {
 			return movie, nil
 		}
 	}
