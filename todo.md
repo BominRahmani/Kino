@@ -1,8 +1,24 @@
 # TODO
 
-- Implement faster image downloading [x]
-    - make it optional?
-- Implement fast mpv/vlc video [x]
+- Fix the fucking decrypter man FUCK
+    - done but havent created my own server for it (piggy backing for now)
+- fix images placement??
+    - more or less
+
+
+
+
+
+- Implement shows []
+- Implement subtitles []
+- Implement quality changer []
+- Imlement history file []
+- speed everything up
+
+
+- Implement Anime (will most likely need new provider for this)? []
+
+
 
 
 ## Useful tools

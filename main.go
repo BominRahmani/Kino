@@ -81,6 +81,11 @@ func upscaleImage(url string) string {
 }
 
 func downloadImages(catalogue []*providers.Movie) {
+	if err := os.MkdirAll("/tmp/kinoImages", 0754); err != nil {
+		fmt.Println("Error creating directory:", err)
+		return
+	}
+
 	totalImages := len(catalogue)
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, 13)
@@ -137,14 +142,10 @@ func FZFSearch(catalogue []*providers.Movie) (*providers.Movie, error) {
 		input.WriteString(fmt.Sprintf("%s (%s)\t%s\n", movie.Title, movie.Year, fullImagePath))
 	}
 
-	// Calculate image dimensions and position
-	imageWidth := 50
-	imageHeight := 50
-	xOffset := 10
-	yOffset := 0
-
-	previewCmd := fmt.Sprintf("kitty +kitten icat --clear --place %dx%d@%dx%d --scale-up  --stdin=no --transfer-mode file {2}",
-		imageWidth, imageHeight, xOffset, yOffset)
+	// Set reasonable fixed dimensions for the preview
+	// Width and height in terminal cells
+	
+	previewCmd := "kitty +kitten icat --clear --place=\"$COLUMNS\"x\"$LINES\"@\"$(($EXTERNAL_COLUMNS-$COLUMNS))\"x0 --scale-up --align center --stdin=no --transfer-mode file {2}"
 
 	fzfArgs := []string{
 		"--cycle",
@@ -177,6 +178,56 @@ func FZFSearch(catalogue []*providers.Movie) (*providers.Movie, error) {
 
 	return nil, fmt.Errorf("selected movie not found in catalogue")
 }
+
+// func FZFSearch(catalogue []*providers.Movie) (*providers.Movie, error) {
+// 	var input strings.Builder
+// 	for _, movie := range catalogue {
+// 		hashedFileName := fmt.Sprint(hash(movie.ImageUrl))
+// 		fullImagePath := filepath.Join("/tmp/kinoImages/", hashedFileName)
+// 		input.WriteString(fmt.Sprintf("%s (%s)\t%s\n", movie.Title, movie.Year, fullImagePath))
+// 	}
+//
+// 	// Calculate image dimensions and position
+// 	imageWidth := 50
+// 	imageHeight := 50
+//   xOffset := 10
+// 	yOffset := 10
+//
+//
+// 	previewCmd := fmt.Sprintf("kitty +kitten icat --clear --place %dx%d@%dx%d --scale-up  --stdin=no --transfer-mode file {2}",
+// 		imageWidth, imageHeight, xOffset, yOffset)
+//
+// 	fzfArgs := []string{
+// 		"--cycle",
+// 		"--reverse",
+// 		"--with-nth", "1",
+// 		"-d", "\t",
+// 		"--preview", previewCmd,
+// 		"--preview-window", "noborder",
+// 		"--preview-window", "right:40%",
+// 	}
+// 	cmd := exec.Command("fzf", fzfArgs...)
+// 	cmd.Stdin = strings.NewReader(input.String())
+// 	cmd.Stderr = os.Stderr
+//
+// 	output, err := cmd.Output()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	selectedTitle := strings.TrimSpace(string(output))
+// 	movieTitlePosition := strings.LastIndex(selectedTitle, "(")
+// 	selectedTitle = selectedTitle[:movieTitlePosition]
+// 	selectedTitle = strings.TrimSpace(selectedTitle)
+//
+// 	for _, movie := range catalogue {
+// 		if movie.Title == selectedTitle {
+// 			return movie, nil
+// 		}
+// 	}
+//
+// 	return nil, fmt.Errorf("selected movie not found in catalogue")
+// }
 
 func introductionMessage() {
 	fmt.Print("\033[H\033[2J")

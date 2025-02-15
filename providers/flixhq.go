@@ -119,9 +119,10 @@ func (f *FlixHQProvider) GetRabbitID(url string) string {
 
 		// Check if 'link' exists and is a string
 		if link, ok := result["link"].(string); ok {
-			if strings.Contains(link, "rabbitstream.net") {
-				parts := strings.Split(link, "/")
-				rabbitID = parts[len(parts)-1]
+			if strings.Contains(link, "embed") {
+				//parts := strings.Split(link, "/")
+				//rabbitID = parts[len(parts)-1]
+        rabbitID=link
 			}
 		}
 	})
@@ -131,14 +132,14 @@ func (f *FlixHQProvider) GetRabbitID(url string) string {
 		fmt.Println("Error: was unsuccesful in making get request to grab rabbitID", err)
 	}
 
-	rabbitID = strings.TrimRight(rabbitID, "?z=")
 	return rabbitID
 }
 
 // extractRabbitWasm makes use the rabbit wasm extractor to decrypt
 func (f *FlixHQProvider) extractRabbitWasm(id string) string {
 	var movieLink string
-	decryptUrl := "https://lobster-decryption.netlify.app/decrypt?id=" + id
+  decryptUrl := fmt.Sprintf("https://misc-embed-decrypt.v4sq52.easypanel.host/embed?embed_url=%s&referrer=%s", id, f.Provider.Base_URL)
+  
 	f.Collector.OnRequest(func(r *colly.Request) {
 		r.Headers.Set("X-Requested-With", "XMLHttpRequest")
 		r.Headers.Set("Content-Type", "application/json")
